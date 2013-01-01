@@ -50,32 +50,51 @@ void print_datetime(datetime *dt) {
     if (dt->minutes) printf("minutes %d, ", dt->minutes);
     printf("\n");
 }
+
+void print_time(datetime *dt) {
+    if (dt->hours) printf("hours %d, ", dt->hours);
+    if (dt->minutes) printf("minutes %d, ", dt->minutes);
+    printf("\n");
+}
+
+void print_date(datetime *dt) {
+    if (dt->next) printf("Next, ");
+    if (dt->other) printf("other, ");
+    if (dt->all_day_event) printf("all-day, ");
+    if (dt->month) printf("month %d, ", dt->month);
+    if (dt->daynum) printf("daynum %d, ", dt->daynum);
+    if (dt->year) printf("year %d, ", dt->year);
+    printf("\n");
+}
 void print_event(event_t *stuff) {
     if (stuff->repeating) printf("Repeating\n");
     if (stuff->multi_days) printf("Multi-day event\n");
     if (stuff->from) {
         printf("FROM: ");
-        print_datetime(&(stuff->FROM));
+        print_time(&(stuff->FROM));
+    } else if (stuff->started_with_date) {
+        printf("DATE: ");
+        print_date(&(stuff->FROM));
     }
     if (stuff->to) {
         printf("TO: ");
-        print_datetime(&(stuff->TO));
+        print_time(&(stuff->TO));
     }
     if (stuff->at) {
         printf("AT: ");
-        print_datetime(&(stuff->AT));
+        print_time(&(stuff->AT));
     }
     if (stuff->dur) {
         printf("DUR: ");
-        print_datetime(&(stuff->DUR));
+        print_time(&(stuff->DUR));
     }
     if (stuff->start) {
         printf("START: ");
-        print_datetime(&(stuff->START));
+        print_date(&(stuff->START));
     }
     if (stuff->end) {
         printf("END: ");
-        print_datetime(&(stuff->END));
+        print_date(&(stuff->END));
     }
 }
     
@@ -97,6 +116,7 @@ void clear_event(event_t *stuff) {
     stuff->dur_days = 0;
     stuff->start = 0;
     stuff->end = 0;
+    stuff->started_with_date = 0;
 }
 
 void copy_datetime(datetime *dest, datetime *src) {
@@ -133,24 +153,26 @@ int main() {
 %token TOK_REMIND TOK_BY TOK_EMAIL TOK_ALARM
 %token TOK_NOON TOK_MIDNIGHT
 %token TOK_HOURMIN
-%token TOK_HOURS TOK_MINS TOK_DAYS
 %token TOK_AM TOK_PM
 %token TOK_NEVER
 %token TOK_EVERY TOK_OTHER TOK_NEXT
 
 %token <intval> TOK_DAYOFWEEK
+%token <intval> TOK_CDAYOFWEEK
 %token <intval>TOK_TODAY 
 %token <intval> TOK_TOMORROW
 
 %token <intval> TOK_MONTH
 %token <intval> TOK_MONTHAFTERDAY
-%token <intval> TOK_INT 
 %token <intval> TOK_2INT 
 %token <intval> TOK_4INT 
 %token <intval> TOK_REAL
 
+%token <intval> TOK_HOURS 
+%token <intval> TOK_MINS 
+%token <intval> TOK_DAYS
+
 %type <intval> hour
-%type <intval> minute
 %type <intval> month_number
 %type <intval> day_number
 %type <intval> year_number
@@ -166,9 +188,9 @@ info: TOK_EVERY {
     | TOK_OTHER {
         stuff->START.other = 1;
     }
-    | dates ',' date {
+    | dates TOK_CDAYOFWEEK {
         stuff->multi_days = 1;
-        // handle date
+        stuff->active_days[$2]++;
     }
     | TOK_FROM clock_time {
         stuff->from++;
@@ -188,8 +210,6 @@ info: TOK_EVERY {
     }
     | TOK_DUR length {
         stuff->dur++;
-        copy_datetime(&stuff->DUR, &tmp);
-        clear_datetime(&tmp);
     }
     | TOK_REMIND reminders
     | TOK_START date {
@@ -206,22 +226,32 @@ info: TOK_EVERY {
     ;
 
 day: TOK_TODAY {
-        tmp.daynum = $1;
+        tmp.dayofweek = $1;
     }
    | TOK_TOMORROW {
-        tmp.daynum = $1;
+        tmp.dayofweek = $1;
     }
    | TOK_NEXT TOK_DAYOFWEEK {
         tmp.next = 1;
-        tmp.daynum = $2;
+        tmp.dayofweek = $2;
     }
    | TOK_DAYOFWEEK {
-        tmp.daynum = $1;
+        tmp.dayofweek = $1;
     }
    ;
 
-dates: dates ',' date
-     | date
+dates: dates TOK_CDAYOFWEEK {
+        stuff->active_days[$2]++;
+     }
+     | TOK_DAYOFWEEK {
+        if (stuff->multi_days == 0) {
+            stuff->started_with_date++;
+            copy_datetime(&stuff->FROM, &tmp);
+            clear_datetime(&tmp);
+        } else {
+            stuff->active_days[$1]++;
+        }
+     }
      ;
 
 date: TOK_MONTH day_number year_number {
@@ -279,15 +309,15 @@ length: length_unit
       | length length_unit
       ;
 
-length_unit: TOK_INT TOK_DAYS {
+length_unit: TOK_DAYS {
                 stuff->dur_days = $1;
            }
            | TOK_HOURMIN
-           | minute TOK_MINS {
-                tmp.minutes = $1;
+           | TOK_MINS {
+                stuff->DUR.minutes = $1;
            }
-           | hour TOK_HOURS {
-                tmp.hours = $1;
+           | TOK_HOURS {
+                stuff->DUR.hours = $1;
            }
            ;
 
@@ -303,10 +333,8 @@ mechanism: TOK_EMAIL
          ;
 
 hour: TOK_2INT
+    | TOK_REAL
     ;
-
-minute: TOK_2INT
-      ;
 
 month_number: TOK_2INT
             ;
