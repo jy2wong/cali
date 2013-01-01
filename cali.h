@@ -43,4 +43,13 @@ typedef struct event_t {
 int yyparse();
 int yylex();
 
+void clear_datetime(datetime *dt);
+void print_datetime(datetime *dt);
+void print_time(datetime *dt);
+void print_date(datetime *dt);
+void print_event(event_t *stuff);
+void clear_event(event_t *stuff);
+void copy_datetime(datetime *dest, datetime *src);
+
+
 #endif

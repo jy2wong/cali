@@ -64,30 +64,38 @@ noon                    return(TOK_NOON);
 midnight                return(TOK_MIDNIGHT);
 
 today                   yylval.intval = 8; return(TOK_TODAY);
-tomorrow                yylval.intval = 9; return(TOK_TOMORROW);
+tomorrow                printf("tomorrow\n"); yylval.intval = 9; return(TOK_TOMORROW);
 
 from                    last = 0; return(TOK_FROM);
-to                      last = 0; return(TOK_TO);
-at                      last = 0; return(TOK_AT);
+to                      printf("to\n"); last = 0; return(TOK_TO);
+at                      printf("at\n"); last = 0; return(TOK_AT);
 dur                     last = 0; return(TOK_DUR);
 starting                last = 0; return(TOK_START);
 ending                  last = 0; return(TOK_END);
 
-[0-9]+[ \t]*m(inute|inutes)[ \t]+   { EXTRACTFIRST(TOK_MINS); }
+[0-9]+[ \t]*m(inute|inutes)   { EXTRACTFIRST(TOK_MINS); }
 
-[0-9]+[ \t]*h(our|ours)[ \t]+   { EXTRACTFIRST(TOK_HOURS); }
+[0-9]+[ \t]*h(our|ours)   { EXTRACTFIRST(TOK_HOURS); }
 
-[0-9]+[ \t]*d(ay|ays)[ \t]+   { EXTRACTFIRST(TOK_DAYS); }
+[0-9]+[ \t]*d(ay|ays)   { EXTRACTFIRST(TOK_DAYS); }
                             
                         
 pm                      return(TOK_PM);
 am                      return(TOK_AM);
 [0-9]?[0-9]             yylval.intval = atoi(yytext); return(TOK_2INT);
-[0-9]?[0-9]:[0-9][0-9]  return(TOK_HOURMIN);
+[0-9]?[0-9]:[0-9][0-9]  {
+                            for (pos=0; yytext[pos] != ':'; pos++);
+                            yytext[pos] = '\0';
+                            yylval.intval = atoi(yytext);
+                            yylval.intval |= atoi(yytext+pos+1);
+                            return(TOK_HOURMIN);
+                        }
 
 [0-9]{4}                yylval.intval = atoi(yytext); return(TOK_4INT);
 
 \n                      /* ignore end of line */;
-[ \t]+                  
+[ \t]+                  /* ignore white space */;
 
 %%
+/*
+*/
