@@ -1,5 +1,6 @@
 CC=clang
-CCFLAGs='-g -Wall'
+CCFLAGS=-g -Wall
+DEBUG=
 
 cali: lex.yy.c cali.tab.c
 	$(CC) $(CCFLAGS) -c lex.yy.c 
@@ -13,10 +14,10 @@ trie.o: trie/trie.c trie/trie.h
 	$(CC) $(CCFLAGS) -c trie/trie.c
 
 lex.yy.c: cali.l
-	flex cali.l
+	flex $(DEBUG) cali.l
 
 cali.tab.c: cali.y
-	bison -d cali.y
+	bison $(DEBUG) -v -d cali.y
 
 clean:
 	rm lex.yy.c cali.tab.c cali.tab.h lex.yy.o cali.tab.o cali
