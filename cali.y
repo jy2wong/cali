@@ -143,6 +143,7 @@ int main() {
 %token <intval> TOK_TOMORROW
 
 %token <intval> TOK_MONTH
+%token <intval> TOK_MONTHAFTERDAY
 %token <intval> TOK_INT 
 %token <intval> TOK_2INT 
 %token <intval> TOK_4INT 
@@ -159,15 +160,15 @@ event:
      | event info
      ;
 
-info: TOK_EVERY simple_days {
+info: TOK_EVERY {
         stuff->repeating = 1;
     }
-    | TOK_EVERY TOK_OTHER simple_days {
+    | TOK_OTHER {
         stuff->START.other = 1;
-        stuff->repeating = 1;
     }
-    | dates {
+    | dates ',' date {
         stuff->multi_days = 1;
+        // handle date
     }
     | TOK_FROM clock_time {
         stuff->from++;
@@ -219,14 +220,6 @@ day: TOK_TODAY {
     }
    ;
 
-simple_days: simple_days ',' TOK_DAYOFWEEK {
-                tmp.daynum = $3;
-           }
-           | TOK_DAYOFWEEK {
-                tmp.daynum = $1;
-            }
-           ;
-
 dates: dates ',' date
      | date
      ;
@@ -248,13 +241,13 @@ date: TOK_MONTH day_number year_number {
         tmp.daynum = $3;
         tmp.year = $5;
     }
-    | TOK_DAYOFWEEK TOK_MONTH day_number year_number {
+    | TOK_DAYOFWEEK TOK_MONTHAFTERDAY day_number year_number {
         tmp.dayofweek = $1;
         tmp.month = $2;
         tmp.daynum = $3;
         tmp.year = $4;
     }
-    | TOK_DAYOFWEEK TOK_MONTH day_number {
+    | TOK_DAYOFWEEK TOK_MONTHAFTERDAY day_number {
         tmp.dayofweek = $1;
         tmp.month = $2;
         tmp.daynum = $3;
@@ -282,8 +275,8 @@ clock_time: TOK_HOURMIN TOK_AM
           }
           ;
 
-length: length length_unit
-      | length_unit
+length: length_unit
+      | length length_unit
       ;
 
 length_unit: TOK_INT TOK_DAYS {
