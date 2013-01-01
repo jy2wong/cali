@@ -37,6 +37,7 @@ typedef struct event_t {
     int from, to;
     int at, dur, dur_days;
     int start, end;
+    int started_with_date;
 } event_t;
 
 int yyparse();
