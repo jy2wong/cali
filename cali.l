@@ -63,8 +63,8 @@ dec(ember)?             yylval.intval = 12; last = 2; return(TOK_MONTH);
 noon                    return(TOK_NOON);
 midnight                return(TOK_MIDNIGHT);
 
-today                   yylval.intval = 8; return(TOK_TODAY);
-tomorrow                yylval.intval = 9; return(TOK_TOMORROW);
+tod(ay)?                yylval.intval = 8; return(TOK_TODAY);
+tom(orrow)?             yylval.intval = 9; return(TOK_TOMORROW);
 
 from                    last = 0; return(TOK_FROM);
 to                      last = 0; return(TOK_TO);
