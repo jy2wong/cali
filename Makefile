@@ -1,5 +1,5 @@
 CC=clang
-CCFLAGS=-g -Wall
+CCFLAGS=-g
 DEBUG=
 
 cali: lex.yy.c cali.tab.c

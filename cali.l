@@ -64,12 +64,12 @@ noon                    return(TOK_NOON);
 midnight                return(TOK_MIDNIGHT);
 
 today                   yylval.intval = 8; return(TOK_TODAY);
-tomorrow                printf("tomorrow\n"); yylval.intval = 9; return(TOK_TOMORROW);
+tomorrow                yylval.intval = 9; return(TOK_TOMORROW);
 
 from                    last = 0; return(TOK_FROM);
-to                      printf("to\n"); last = 0; return(TOK_TO);
-at                      printf("at\n"); last = 0; return(TOK_AT);
-dur                     last = 0; return(TOK_DUR);
+to                      last = 0; return(TOK_TO);
+at                      last = 0; return(TOK_AT);
+dur(ation)?             last = 0; return(TOK_DUR);
 starting                last = 0; return(TOK_START);
 ending                  last = 0; return(TOK_END);
 
