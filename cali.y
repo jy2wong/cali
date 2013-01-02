@@ -17,7 +17,6 @@ event_t *stuff;
 
 #define DECODEHOUR(n) ((n) >> 5)
 #define DECODEMIN(n) (n % (1 << 5))
-#define ENCODEHOUR(n) ((n) << 5)
 
 void yyerror(const char *str) {
     fprintf(stderr,"error: %s\n",str);
@@ -78,12 +77,14 @@ event:
      | event info
      ;
 
-info: TOK_EVERY {
+info: TOK_EVERY TOK_DAYOFWEEK {
         stuff->repeating = 1;
+        stuff->active_days[$2]++;
     }
-    | TOK_EVERY TOK_OTHER {
+    | TOK_EVERY TOK_OTHER TOK_DAYOFWEEK {
         stuff->repeating = 1;
-        stuff->START.other = 1;
+        stuff->other = 1;
+        stuff->active_days[$3]++;
     }
     | dates TOK_CDAYOFWEEK {
         //stuff->multi_days = 1;
@@ -142,20 +143,9 @@ day: TOK_TODAY {
     }
    ;
 
-dates: dates TOK_CDAYOFWEEK {
+dates: 
+     | dates TOK_CDAYOFWEEK {
         stuff->active_days[$2]++;
-     }
-     | TOK_DAYOFWEEK {
-        stuff->multi_days = 1;
-        if (stuff->multi_days == 0) {
-            printf("this shouldn't be happening...\n");
-            stuff->started_with_date++;
-            copy_datetime(&stuff->FROM, &tmp);
-            clear_datetime(&tmp);
-        } else {
-            printf("multiday dayofweek\n");
-            stuff->active_days[$1]++;
-        }
      }
      ;
 
@@ -259,7 +249,6 @@ year_number: TOK_4INT
 %%
 void clear_datetime(datetime *dt) {
     dt->next = 0;
-    dt->other = 0;
     dt->all_day_event = 0;
     
     dt->month = 0;
@@ -271,7 +260,6 @@ void clear_datetime(datetime *dt) {
 
 void print_datetime(datetime *dt) {
     if (dt->next) printf("Next, ");
-    if (dt->other) printf("other, ");
     if (dt->all_day_event) printf("all-day, ");
     if (dt->dayofweek) printf("weekday %d, ", dt->dayofweek);
     if (dt->month) printf("month %d, ", dt->month);
@@ -290,7 +278,6 @@ void print_time(datetime *dt) {
 
 void print_date(datetime *dt) {
     if (dt->next) printf("Next, ");
-    if (dt->other) printf("other, ");
     if (dt->all_day_event) printf("all-day, ");
     if (dt->dayofweek) printf("weekday %d, ", dt->dayofweek);
     if (dt->month) printf("month %d, ", dt->month);
@@ -300,7 +287,10 @@ void print_date(datetime *dt) {
 }
 void print_event(event_t *stuff) {
     if (stuff->repeating) {
-        printf("Repeating: [");
+        printf("Repeating");
+        if (stuff->other) printf(" every other");
+        printf(": [");
+
         for (int i=0; i<7; i++) {
             if (stuff->active_days[i]) {
                 printf("%d,", i);
@@ -362,7 +352,6 @@ void clear_event(event_t *stuff) {
 
 void copy_datetime(datetime *dest, datetime *src) {
     dest->next |= src->next;
-    dest->other |= src->other;
     dest->all_day_event |= src->all_day_event;
     
     dest->dayofweek |= src->dayofweek;

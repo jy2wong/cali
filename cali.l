@@ -3,6 +3,7 @@
 #include "cali.tab.h"
 #include "cali.h"
 
+#define ENCODEHOUR(n) ((n) << 5)
 #define DAYHANDLER(n, token) yylval.intval = n; \
 last = 1; \
 return(token)
@@ -73,11 +74,11 @@ dur(ation)?             last = 0; return(TOK_DUR);
 starting                last = 0; return(TOK_START);
 ending                  last = 0; return(TOK_END);
 
-[0-9]+[ \t]*m(inute|inutes)   { EXTRACTFIRST(TOK_MINS); }
+[0-9]+[ \t]*m(inute|inutes)?   { EXTRACTFIRST(TOK_MINS); }
 
-[0-9]+[ \t]*h(our|ours)   { EXTRACTFIRST(TOK_HOURS); }
+[0-9]+[ \t]*h(our|ours)?   { EXTRACTFIRST(TOK_HOURS); }
 
-[0-9]+[ \t]*d(ay|ays)   { EXTRACTFIRST(TOK_DAYS); }
+[0-9]+[ \t]*d(ay|ays)?   { EXTRACTFIRST(TOK_DAYS); }
                             
                         
 pm                      return(TOK_PM);
@@ -86,8 +87,8 @@ am                      return(TOK_AM);
 [0-9]?[0-9]:[0-9][0-9]  {
                             for (pos=0; yytext[pos] != ':'; pos++);
                             yytext[pos] = '\0';
-                            yylval.intval = atoi(yytext);
-                            yylval.intval |= atoi(yytext+pos+1);
+                            //printf("extracted %d, %d\n", atoi(yytext), atoi(yytext+pos+1));
+                            yylval.intval = ENCODEHOUR(atoi(yytext)) | atoi(yytext+pos+1);
                             return(TOK_HOURMIN);
                         }
 

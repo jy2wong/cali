@@ -10,7 +10,6 @@ typedef enum weekday { SUN, MON, TUE, WED, THU, FRI, SAT, TODAY, TOMORROW } week
 
 typedef struct datetime {
     int next;
-    int other;
     int all_day_event;
 
     weekday dayofweek;
@@ -23,6 +22,7 @@ typedef struct datetime {
 
 typedef struct event_t {
     int repeating; // every
+    int other;
     int multi_days;
     int active_days[7];
 
