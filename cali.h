@@ -6,7 +6,9 @@ typedef enum Month {
     JUL, AUG, SEP, OCT, NOV, DEC 
 } Month;
 
-typedef enum weekday { SUN, MON, TUE, WED, THU, FRI, SAT, TODAY, TOMORROW } weekday;
+typedef enum weekday { 
+    MON = 1, TUE, WED, THU, FRI, SAT, SUN, TODAY, TOMORROW 
+} weekday;
 
 typedef struct datetime {
     int next;
@@ -20,19 +22,23 @@ typedef struct datetime {
     int minutes;
 } datetime;
 
+#define DECODEHOUR(n) ((n) >> 5)
+#define DECODEMIN(n) (n % (1 << 5))
+#define ENCODEHOUR(n) ((n) << 5)
+
 typedef struct event_t {
     int repeating; // every
     int other;
     int multi_days;
     int active_days[7];
 
+    datetime dates[3];
     #define FROM    dates[0]
     #define TO      dates[1]
     #define AT      dates[0]
     #define DUR     dates[1]
     #define START   dates[0]
     #define END     dates[1]
-    datetime dates[3];
 
     int from, to;
     int at, dur, dur_days;
@@ -50,6 +56,5 @@ void print_date(datetime *dt);
 void print_event(event_t *stuff);
 void clear_event(event_t *stuff);
 void copy_datetime(datetime *dest, datetime *src);
-
 
 #endif

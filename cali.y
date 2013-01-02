@@ -3,20 +3,8 @@
 #include <stdlib.h>
 #include "cali.h"
 
-/*
-cali saturday at 5pm: do dishes
-cali tomorrow from 5pm to 7pm: meeting
-cali tomorrow at 5pm duration 2 hours: meeting
-cali every (other tuesday),wednesday,thursday from 3 to 5 starting november 3 ending never remindme 3 days by email, 15 minutes by alarm: go bowling
-
-split up using : as a delimiter.
-*/
-
 datetime tmp;
 event_t *stuff;
-
-#define DECODEHOUR(n) ((n) >> 5)
-#define DECODEMIN(n) (n % (1 << 5))
 
 void yyerror(const char *str) {
     fprintf(stderr,"error: %s\n",str);
@@ -42,15 +30,12 @@ int main() {
     char charval;
 }
 
-%token TOK_FROM TOK_TO 
-%token TOK_AT TOK_DUR 
-%token TOK_START TOK_END
+%token TOK_EVERY TOK_OTHER TOK_NEXT
+%token TOK_FROM TOK_TO TOK_AT TOK_DUR TOK_START TOK_END
 %token TOK_REMIND TOK_BY TOK_EMAIL TOK_ALARM
 %token TOK_NOON TOK_MIDNIGHT
-%token <intval> TOK_HOURMIN
 %token TOK_AM TOK_PM
 %token TOK_NEVER
-%token TOK_EVERY TOK_OTHER TOK_NEXT
 
 %token <intval> TOK_DAYOFWEEK
 %token <intval> TOK_CDAYOFWEEK
@@ -65,6 +50,7 @@ int main() {
 
 %token <intval> TOK_HOURS 
 %token <intval> TOK_MINS 
+%token <intval> TOK_HOURMIN
 %token <intval> TOK_DAYS
 
 %type <intval> hour
@@ -73,23 +59,22 @@ int main() {
 %type <intval> year_number
 
 %%
-event:  
-     | event info
-     ;
+event   : 
+        | event info 
+        ;
 
 info: TOK_EVERY TOK_DAYOFWEEK {
         stuff->repeating = 1;
-        stuff->active_days[$2]++;
-    }
+        stuff->active_days[$2]++; 
+    } 
     | TOK_EVERY TOK_OTHER TOK_DAYOFWEEK {
         stuff->repeating = 1;
         stuff->other = 1;
         stuff->active_days[$3]++;
-    }
+    } 
     | dates TOK_CDAYOFWEEK {
-        //stuff->multi_days = 1;
         stuff->active_days[$2]++;
-    }
+    } 
     | TOK_FROM clock_time {
         stuff->from++;
         copy_datetime(&stuff->FROM, &tmp);
@@ -104,7 +89,6 @@ info: TOK_EVERY TOK_DAYOFWEEK {
         stuff->at++;
         copy_datetime(&stuff->AT, &tmp);
         clear_datetime(&tmp);
-        //printf("%s %d:%d (%u) \n", name, dest.hours, dest.minutes, arg);
     }
     | TOK_DUR length {
         stuff->dur++;
@@ -115,7 +99,7 @@ info: TOK_EVERY TOK_DAYOFWEEK {
         copy_datetime(&stuff->START, &tmp);
         clear_datetime(&tmp);
     }
-    | TOK_END TOK_NEVER
+    | TOK_END TOK_NEVER /* don't need to do anything */
     | TOK_END date {
         stuff->end++;
         copy_datetime(&stuff->END, &tmp);
@@ -128,26 +112,26 @@ info: TOK_EVERY TOK_DAYOFWEEK {
     }
     ;
 
-day: TOK_TODAY {
+day : TOK_TODAY {
         tmp.dayofweek = $1;
     }
-   | TOK_TOMORROW {
+    | TOK_TOMORROW {
         tmp.dayofweek = $1;
     }
-   | TOK_NEXT TOK_DAYOFWEEK {
+    | TOK_NEXT TOK_DAYOFWEEK {
         tmp.next = 1;
         tmp.dayofweek = $2;
     }
-   | TOK_DAYOFWEEK {
+    | TOK_DAYOFWEEK {
         tmp.dayofweek = $1;
     }
-   ;
+    ;
 
-dates: 
-     | dates TOK_CDAYOFWEEK {
-        stuff->active_days[$2]++;
-     }
-     ;
+dates   : 
+        | dates TOK_CDAYOFWEEK {
+            stuff->active_days[$2]++; 
+        }
+        ;
 
 date: TOK_MONTH day_number year_number {
         tmp.month = $1;
@@ -177,61 +161,61 @@ date: TOK_MONTH day_number year_number {
     | day
     ;
 
-clock_time: TOK_HOURMIN TOK_AM {
+clock_time  : TOK_HOURMIN TOK_AM {
                 tmp.hours = DECODEHOUR($1);
                 tmp.minutes = DECODEMIN($1);
-          }
-          | TOK_HOURMIN TOK_PM {
+            }
+            | TOK_HOURMIN TOK_PM {
                 tmp.hours = DECODEHOUR($1) + 12;
                 tmp.minutes = DECODEMIN($1);
-          }
-          | TOK_HOURMIN {
+            }
+            | TOK_HOURMIN {
                 tmp.hours = DECODEHOUR($1);
                 tmp.minutes = DECODEMIN($1);
-          }
-          | hour TOK_AM {
+            }
+            | hour TOK_AM {
                 tmp.hours = $1;
             }
-          | hour TOK_PM {
+            | hour TOK_PM {
                 tmp.hours = $1 + 12;
             }
-          | hour {
+            | hour {
                 tmp.hours = $1;
             }
-          | TOK_NOON {
+            | TOK_NOON {
                 tmp.hours = 12;
-          }
-          | TOK_MIDNIGHT {
+            }
+            | TOK_MIDNIGHT {
                 tmp.hours = 0;
-          }
-          ;
+            }
+            ;
 
-length: length_unit
-      | length length_unit
-      ;
+length  : length_unit
+        | length length_unit
+        ;
 
-length_unit: TOK_DAYS {
+length_unit : TOK_DAYS {
                 stuff->dur_days = $1;
-           }
-           | TOK_HOURMIN
-           | TOK_MINS {
+            }
+            | TOK_HOURMIN
+            | TOK_MINS {
                 stuff->DUR.minutes = $1;
-           }
-           | TOK_HOURS {
+            }
+            | TOK_HOURS {
                 stuff->DUR.hours = $1;
-           }
-           ;
+            }
+            ;
 
-reminders: reminders ',' reminder
-         | reminder
-         ;
+reminders   : reminders ',' reminder
+            | reminder
+            ;
 
 reminder: length TOK_BY mechanism
         ;
 
-mechanism: TOK_EMAIL
-         | TOK_ALARM
-         ;
+mechanism   : TOK_EMAIL
+            | TOK_ALARM
+            ;
 
 hour: TOK_2INT
     | TOK_REAL
@@ -240,17 +224,18 @@ hour: TOK_2INT
 month_number: TOK_2INT
             ;
 
-day_number: TOK_2INT
-          ;
+day_number  : TOK_2INT
+            ;
 
-year_number: TOK_4INT
-           ;
-
+year_number : TOK_4INT
+            ;
 %%
+
 void clear_datetime(datetime *dt) {
     dt->next = 0;
     dt->all_day_event = 0;
     
+    dt->dayofweek = 0;
     dt->month = 0;
     dt->daynum = 0;
     dt->year = 0;
@@ -261,6 +246,7 @@ void clear_datetime(datetime *dt) {
 void print_datetime(datetime *dt) {
     if (dt->next) printf("Next, ");
     if (dt->all_day_event) printf("all-day, ");
+
     if (dt->dayofweek) printf("weekday %d, ", dt->dayofweek);
     if (dt->month) printf("month %d, ", dt->month);
     if (dt->daynum) printf("daynum %d, ", dt->daynum);
@@ -279,12 +265,14 @@ void print_time(datetime *dt) {
 void print_date(datetime *dt) {
     if (dt->next) printf("Next, ");
     if (dt->all_day_event) printf("all-day, ");
+
     if (dt->dayofweek) printf("weekday %d, ", dt->dayofweek);
     if (dt->month) printf("month %d, ", dt->month);
     if (dt->daynum) printf("daynum %d, ", dt->daynum);
     if (dt->year) printf("year %d, ", dt->year);
     printf("\n");
 }
+
 void print_event(event_t *stuff) {
     if (stuff->repeating) {
         printf("Repeating");
@@ -300,13 +288,15 @@ void print_event(event_t *stuff) {
     }
 
     if (stuff->multi_days) printf("Multi-day event\n");
-    if (stuff->from) {
-        printf("FROM: ");
-        print_time(&(stuff->FROM));
-    } else if (stuff->started_with_date) {
+
+    if (stuff->started_with_date) {
         printf("DATE: ");
         print_date(&(stuff->FROM));
     }
+    if (stuff->from) {
+        printf("FROM: ");
+        print_time(&(stuff->FROM));
+    } 
     if (stuff->to) {
         printf("TO: ");
         print_time(&(stuff->TO));
@@ -340,6 +330,7 @@ void clear_event(event_t *stuff) {
         clear_datetime(&(stuff->dates[i]));
     }
 
+    stuff->started_with_date = 0;
     stuff->from = 0;
     stuff->to = 0;
     stuff->at = 0;
@@ -347,7 +338,6 @@ void clear_event(event_t *stuff) {
     stuff->dur_days = 0;
     stuff->start = 0;
     stuff->end = 0;
-    stuff->started_with_date = 0;
 }
 
 void copy_datetime(datetime *dest, datetime *src) {

@@ -3,25 +3,24 @@
 #include "cali.tab.h"
 #include "cali.h"
 
-#define ENCODEHOUR(n) ((n) << 5)
 #define DAYHANDLER(n, token) yylval.intval = n; \
-last = 1; \
-return(token)
+    last = 1; \
+    return(token)
 
 #define MONTHHANDLER(n) yylval.intval = n; \
-if (last == 1) { \
-    last = 2; \
-    return(TOK_MONTHAFTERDAY); \
-} else { \
-    last = 2; \
-    return(TOK_MONTH); \
-}
+    if (last == 1) { \
+        last = 2; \
+        return(TOK_MONTHAFTERDAY); \
+    } else { \
+        last = 2; \
+        return(TOK_MONTH); \
+    }
 
 #define EXTRACTFIRST(token) last = 0; \
-                        for (pos = 0; yytext[pos] >= '0' && yytext[pos] <= '9'; pos++); \
-                        yytext[pos] = '\0'; \
-                        yylval.intval = atoi(yytext); \
-                        return(token)
+    for (pos = 0; yytext[pos] >= '0' && yytext[pos] <= '9'; pos++); \
+    yytext[pos] = '\0'; \
+    yylval.intval = atoi(yytext); \
+    return(token)
 
 int last = 0;
 int pos;
@@ -32,13 +31,13 @@ int pos;
 every                   return(TOK_EVERY);
 other                   return(TOK_OTHER);
 
-,[ \t]*mon(day)?               { DAYHANDLER(1, TOK_CDAYOFWEEK); }
-,[ \t]*tue(sday|s)?            { DAYHANDLER(2, TOK_CDAYOFWEEK); }
-,[ \t]*wed(nesday)?            { DAYHANDLER(3, TOK_CDAYOFWEEK); }
-,[ \t]*thu(rsday)?             { DAYHANDLER(4, TOK_CDAYOFWEEK); }
-,[ \t]*fri(day)?               { DAYHANDLER(5, TOK_CDAYOFWEEK); }
-,[ \t]*sat(urday)?             { DAYHANDLER(6, TOK_CDAYOFWEEK); }
-,[ \t]*sun(day)?               { DAYHANDLER(7, TOK_CDAYOFWEEK); }
+,[ \t]*mon(day)?        { DAYHANDLER(1, TOK_CDAYOFWEEK); }
+,[ \t]*tue(sday|s)?     { DAYHANDLER(2, TOK_CDAYOFWEEK); }
+,[ \t]*wed(nesday)?     { DAYHANDLER(3, TOK_CDAYOFWEEK); }
+,[ \t]*thu(rsday)?      { DAYHANDLER(4, TOK_CDAYOFWEEK); }
+,[ \t]*fri(day)?        { DAYHANDLER(5, TOK_CDAYOFWEEK); }
+,[ \t]*sat(urday)?      { DAYHANDLER(6, TOK_CDAYOFWEEK); }
+,[ \t]*sun(day)?        { DAYHANDLER(7, TOK_CDAYOFWEEK); }
 
 mon(day)?               { DAYHANDLER(1, TOK_DAYOFWEEK); }
 tue(sday|s)?            { DAYHANDLER(2, TOK_DAYOFWEEK); }
@@ -74,11 +73,11 @@ dur(ation)?             last = 0; return(TOK_DUR);
 starting                last = 0; return(TOK_START);
 ending                  last = 0; return(TOK_END);
 
-[0-9]+[ \t]*m(inute|inutes)?   { EXTRACTFIRST(TOK_MINS); }
+[0-9]+[ \t]*m(inute|inutes)?    { EXTRACTFIRST(TOK_MINS); }
 
-[0-9]+[ \t]*h(our|ours)?   { EXTRACTFIRST(TOK_HOURS); }
+[0-9]+[ \t]*h(our|ours)?        { EXTRACTFIRST(TOK_HOURS); }
 
-[0-9]+[ \t]*d(ay|ays)?   { EXTRACTFIRST(TOK_DAYS); }
+[0-9]+[ \t]*d(ay|ays)?          { EXTRACTFIRST(TOK_DAYS); }
                             
                         
 pm                      return(TOK_PM);
@@ -98,5 +97,3 @@ am                      return(TOK_AM);
 [ \t]+                  /* ignore white space */;
 
 %%
-/*
-*/
