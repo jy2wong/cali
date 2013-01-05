@@ -236,7 +236,6 @@ year_number : TOK_4INT
 
 void clear_datetime(datetime *dt) {
     dt->next = 0;
-    dt->all_day_event = 0;
     
     dt->dayofweek = 0;
     dt->month = 0;
@@ -248,7 +247,6 @@ void clear_datetime(datetime *dt) {
 
 void print_datetime(datetime *dt) {
     if (dt->next) printf("Next, ");
-    if (dt->all_day_event) printf("all-day, ");
 
     if (dt->dayofweek) printf("weekday %d, ", dt->dayofweek);
     if (dt->month) printf("month %d, ", dt->month);
@@ -267,7 +265,6 @@ void print_time(datetime *dt) {
 
 void print_date(datetime *dt) {
     if (dt->next) printf("Next, ");
-    if (dt->all_day_event) printf("all-day, ");
 
     if (dt->dayofweek) printf("weekday %d, ", dt->dayofweek);
     if (dt->month) printf("month %d, ", dt->month);
@@ -307,6 +304,8 @@ void print_event(event_t *stuff) {
     if (stuff->at) {
         printf("AT: ");
         print_time(&(stuff->AT));
+    } else {
+        printf("(all day)\n");
     }
     if (stuff->dur) {
         printf("DUR: ");
@@ -345,7 +344,6 @@ void clear_event(event_t *stuff) {
 
 void copy_datetime(datetime *dest, datetime *src) {
     dest->next |= src->next;
-    dest->all_day_event |= src->all_day_event;
     
     dest->dayofweek |= src->dayofweek;
     dest->month |= src->month;

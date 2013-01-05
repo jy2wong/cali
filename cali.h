@@ -12,7 +12,6 @@ typedef enum weekday {
 
 typedef struct datetime {
     int next;
-    int all_day_event;
 
     weekday dayofweek;
     Month month;
