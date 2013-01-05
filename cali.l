@@ -86,7 +86,6 @@ am                      return(TOK_AM);
 [0-9]?[0-9]:[0-9][0-9]  {
                             for (pos=0; yytext[pos] != ':'; pos++);
                             yytext[pos] = '\0';
-                            //printf("extracted %d, %d\n", atoi(yytext), atoi(yytext+pos+1));
                             yylval.intval = ENCODEHOUR(atoi(yytext)) | atoi(yytext+pos+1);
                             return(TOK_HOURMIN);
                         }

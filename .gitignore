@@ -3,5 +3,6 @@ cali.tab.c
 cali.tab.h
 lex.yy.o
 cali.tab.o
+remind.o
 cali
 cali.output

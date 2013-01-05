@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cali.h"
+#include "remind.h"
 
 datetime tmp;
 event_t *stuff;
@@ -20,6 +21,7 @@ int main() {
 
     yyparse();
     print_event(stuff);
+    print_remind(stuff);
     free(stuff);
     return 0;
 }
@@ -64,12 +66,13 @@ event   :
         ;
 
 info: TOK_EVERY TOK_DAYOFWEEK {
-        stuff->repeating = 1;
+        stuff->repeating++;
+        stuff->multi_days++;
         stuff->active_days[$2]++; 
     } 
     | TOK_EVERY TOK_OTHER TOK_DAYOFWEEK {
-        stuff->repeating = 1;
-        stuff->other = 1;
+        stuff->repeating++;
+        stuff->other++;
         stuff->active_days[$3]++;
     } 
     | dates TOK_CDAYOFWEEK {
