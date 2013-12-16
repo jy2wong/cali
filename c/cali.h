@@ -27,7 +27,6 @@ typedef struct datetime {
 
 typedef struct event_t {
     int repeating; // every
-    int other;
     int multi_days;
     int active_days[7];
 

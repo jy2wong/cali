@@ -20,4 +20,5 @@ void print_remind(event_t *event) {
     } else {
         printf("only ");
     }
+
 }

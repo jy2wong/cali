@@ -27,7 +27,7 @@ int main() {
 }
 %}
 
-%union YYSTYPE {
+%union {
     int intval;
     char charval;
 }
@@ -66,13 +66,12 @@ event   :
         ;
 
 info: TOK_EVERY TOK_DAYOFWEEK {
-        stuff->repeating++;
+        stuff->repeating = 1;
         stuff->multi_days++;
         stuff->active_days[$2]++; 
     } 
     | TOK_EVERY TOK_OTHER TOK_DAYOFWEEK {
-        stuff->repeating++;
-        stuff->other++;
+        stuff->repeating = 2;
         stuff->active_days[$3]++;
     } 
     | dates TOK_CDAYOFWEEK {
@@ -276,7 +275,7 @@ void print_date(datetime *dt) {
 void print_event(event_t *stuff) {
     if (stuff->repeating) {
         printf("Repeating");
-        if (stuff->other) printf(" every other");
+        if (stuff->repeating == 2) printf(" every other");
         printf(": [");
 
         for (int i=0; i<7; i++) {
